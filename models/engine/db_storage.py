@@ -8,14 +8,18 @@ from os import getenv
 from sqlalchemy.orm.session import Session
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.orm.exc import NoResultFound
-
 from dotenv import load_dotenv
 from models.jobSeeker import JobSeeker as User
+from models.employer import Employer
+from models.job import Job
+
 
 load_dotenv()
 
 classes = {
-    "User": User
+    "User": User,
+    "Employer": Employer,
+    "Job": Job
 }
 
 
@@ -103,61 +107,34 @@ class DBStorage:
 
         return None
 
-    def getInvoice(self, cls, user_id):
-        """
-        Returns the object based on the class name and its user_id, or
-        None if not found
-        """
-        if cls not in classes.values():
-            return None
+    def getjobs(self, cls, id):
+        """ 
+        Return job based on the id"""
 
-        invoice = []
-
-        all_cls = models.storage.all(cls)
-        for value in all_cls.values():
-            if value.user_id == user_id:
-                invoice.append(value.id)
-
-        return invoice
-
-    def getMedia(self, cls, id):
-        """
-        Returns the object based on the class name and its ID, or
-        None if not found
-        """
         if cls not in classes.values():
             return None
 
         all_cls = models.storage.all(cls)
         for value in all_cls.values():
-            if value.painters_id == id:
+            if value.id == id:
                 return value
 
         return None
 
-    def getProduct(self, cls, stripeId):
+    def count(self, cls=None):
         """
-        Returns the object based on the class name and its ID, or
-        None if not found
+        count the number of objects in storage
         """
-        if cls not in classes.values():
-            return None
+        if cls is None:
+            count = 0
+            for clas in classes.values():
+                count += len(models.storage.all(clas).values())
+        else:
+            count = len(models.storage.all(cls).values())
 
-        all_cls = models.storage.all(cls)
-        for value in all_cls.values():
-            if value.stripeId == stripeId:
-                return value
+        return count
 
-        return None
-
-    def getStripId(self, cls, product_id):
-        if cls not in classes.values():
-            return None
-        all_cls = models.storage.all(cls)
-        for value in all_cls.values():
-            if value.id == product_id:
-                return value.stripeId
-        return None
+    
 
     def add_user(self, email: str, hashed_password: str, first_name: str, last_name: str) -> User:
         """This is the add user method"""
@@ -211,4 +188,98 @@ class DBStorage:
         """This method deletes a user from the database"""
         user = self.find_user_by(id=user_id)
         self._session.delete(user)
+        self._session.commit()
+
+    def add_employer(self, email: str, hashed_password: str, first_name: str, last_name: str) -> Employer:
+        """This is the add user method"""
+
+        new_employer = Employer(email=email, hashed_password=hashed_password,
+                        first_name=first_name, last_name=last_name)
+        print(new_employer.id)
+        self._session.add(new_employer)
+        self._session.flush()  # flush the changes to the database
+        self._session.commit()
+        self._session.refresh(new_employer)  # refresh the user instance
+        return new_employer
+
+    def find_employer_by(self, **kwargs) -> User:
+        """This method takes in arbitrary keyword arguments and returns
+        the first row found in the users table as filtered by the
+        method’s input arguments"""
+        try:
+            # Construct the query dynamically based on kwargs
+            query = self._session.query(Employer).filter_by(**kwargs)
+
+        except InvalidRequestError:
+            # If there is an invalid request error, raise it with a
+            # meaningful message
+            raise InvalidRequestError
+
+        if query:
+            # Get the first result or raise NoResultFound
+            user_instance = query.one()
+
+            return user_instance
+        else:
+            # If no results are found, raise NoResultFound
+            raise NoResultFound
+
+    def update_employer(self, employer_id: int, **kwargs) -> None:
+        """This is a method that takes as argument a required user_id
+        integer and arbitrary keyword arguments, and returns None"""
+        user = self.find_employer_by(id=employer_id)
+        if kwargs:
+            for key, value in kwargs.items():
+                if hasattr(user, key):
+                    setattr(user, key, value)
+                else:
+                    raise ValueError(f"Invalid attribute: {key}")
+
+        # Commit changes to the database
+        self._session.commit()
+
+    def delete_employer(self, employer_id: int) -> None:
+        """This method deletes a user from the database"""
+        employer = self.find_user_by(id=employer_id)
+        self._session.delete(employer)
+        self._session.commit()
+
+    def add_job(self, title: str, description: str, employer_id: int, **kwargs) -> Job:
+        """This is the add user method"""
+
+        job = Job(title=title, description=description, employer_id=employer_id, **kwargs)
+        print(job.id)
+        self._session.add(job)
+        self._session.flush()  # flush the changes to the database
+        self._session.commit()
+        self._session.refresh(job)  # refresh the user instance
+        return job
+
+    def find_job_by(self, **kwargs) -> Job:
+        """This method takes in arbitrary keyword arguments and returns
+        the first row found in the users table as filtered by the
+        method’s input arguments"""
+        try:
+            # Construct the query dynamically based on kwargs
+            query = self._session.query(Job).filter_by(**kwargs)
+
+        except InvalidRequestError:
+            # If there is an invalid request error, raise it with a
+            # meaningful message
+            raise InvalidRequestError
+
+        if query:
+            # Get the first result or raise NoResultFound
+            user_instance = query.one()
+
+            return user_instance
+        else:
+            # If no results are found, raise NoResultFound
+            raise NoResultFound
+        
+     
+    def delete_job(self, job_id: int) -> None:
+        """This method deletes a user from the database"""
+        job = self.find_user_by(id=job_id)
+        self._session.delete(job)
         self._session.commit()

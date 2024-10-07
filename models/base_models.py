@@ -72,11 +72,11 @@ class Basemodels:
 
     
 
-    def add_admin(self):
+    def add_employer(self):
         from models.engine.auth import Auth
         self.updated_at = datetime.utcnow()
         auth = Auth()
-        auth.register_admin(self.email, self.password, self.first_name, self.last_name)
+        auth.register_employer(self.email, self.password, self.first_name, self.last_name)
 
     def delete(self):
         """delete the current instance from the storage"""

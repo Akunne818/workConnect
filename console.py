@@ -4,10 +4,14 @@ import models
 import shlex
 from models.base_models import Basemodels
 from models.jobSeeker import JobSeeker as User
+from models.employer import Employer
+from models.job import Job
 
 
 classes = {
-    "User": User
+    "User": User,
+    "Employer": Employer,
+    "Job": Job
 }
 
 
@@ -62,9 +66,9 @@ class HBNBCommand(cmd.Cmd):
             if args[0] == 'User':
                 print(instance)
                 instance.add_user()
-            elif args[0] == 'Admin':
+            elif args[0] == 'Employer':
                 print(instance)
-                instance.add_admin()
+                instance.add_employer()
             else:
                 print(instance.id)
                 instance.save()
