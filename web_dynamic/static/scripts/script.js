@@ -92,3 +92,89 @@ function login() {
   z.style.left = "0px";
   form_size[0].style.height = "430px";
 }
+
+
+
+let currentPage = 1;
+const paginationData = document.getElementById('pagination-data');
+const totalPages = paginationData.getAttribute('data-total-pages');
+// Function to load jobs via AJAX
+function loadJobs(direction) {
+    // Calculate new page number
+    if (direction === 'next') {
+        currentPage++;
+    } else if (direction === 'prev') {
+        currentPage--;
+    }
+
+    // Fetch jobs via AJAX
+    fetch(`/jobs?page=${currentPage}`)
+        .then(response => response.json())
+        .then(jobs => {
+            // Update job listings
+            const jobListingsDiv = document.getElementById('job-listings');
+            jobListingsDiv.innerHTML = '';
+
+            jobs.forEach(job => {
+                const jobHtml = `
+                    <div class="job-item p-4 mb-4">
+                        <div class="row g-4">
+                            <div class="col-sm-12 col-md-8 d-flex align-items-center">
+                                <img class="flex-shrink-0 img-fluid border rounded"
+                                      src="${job.company_logo}" alt="Company Logo"
+                                      style="width: 80px; height: 80px" />
+                                <div class="text-start ps-4">
+                                    <h5 class="mb-3">${job.title}</h5>
+                                    <span class="text-truncate me-3">
+                                        <i class="fa fa-map-marker-alt text-primary me-2"></i>${job.location}
+                                    </span>
+                                    <span class="text-truncate me-3">
+                                        <i class="fa fa-building text-primary me-2"></i>${job.company}
+                                    </span>
+                                    <span class="text-truncate me-0">
+                                        <i class="far fa-money-bill-alt text-primary me-2"></i>$123 - $321
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-4 d-flex flex-column align-items-start align-items-md-end justify-content-center">
+                                <div class="d-flex mb-3">
+                                    <a class="btn btn-light btn-square me-3" href="">
+                                        <i class="far fa-heart text-primary"></i>
+                                    </a>
+                                    <a class="btn btn-primary" href="${job.apply_url}">Apply Now</a>
+                                </div>
+                                <small class="text-truncate">
+                                    <i class="far fa-calendar-alt text-primary me-2"></i>${job.date}
+                                </small>
+                            </div>
+                        </div>
+                    </div>`;
+                jobListingsDiv.innerHTML += jobHtml;
+            });
+
+            // Update button states
+            document.getElementById('prev-btn').disabled = currentPage === 1;
+            document.getElementById('next-btn').disabled = currentPage === totalPages;
+        });
+}
+
+
+
+document.getElementById('next-btn').addEventListener('click', function(event) {
+    event.preventDefault();  // Prevent default page reload
+    
+    loadJobs('next')
+
+    // After loading the new jobs, scroll to the top of the container
+    document.getElementById('job-container').scrollIntoView({ behavior: 'smooth' });
+});
+
+document.getElementById('prev-btn').addEventListener('click', function(event) {
+    event.preventDefault();  // Prevent default page reload
+    
+    loadJobs('prev')
+    
+    // After loading the previous jobs, scroll to the top of the container
+    document.getElementById('job-container').scrollIntoView({ behavior: 'smooth' });
+});
+
