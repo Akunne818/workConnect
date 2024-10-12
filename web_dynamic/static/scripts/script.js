@@ -93,31 +93,34 @@ function login() {
   form_size[0].style.height = "430px";
 }
 
-
-
 let currentPage = 1;
-const paginationData = document.getElementById('pagination-data');
-const totalPages = paginationData.getAttribute('data-total-pages');
+const paginationData = document.getElementById("pagination-data");
+const totalPages = paginationData.getAttribute("data-total-pages");
 // Function to load jobs via AJAX
 function loadJobs(direction) {
-    // Calculate new page number
-    if (direction === 'next') {
-        currentPage++;
-    } else if (direction === 'prev') {
-        currentPage--;
-    }
+  // Calculate new page number
+  let startIndex = 0;
+  if (direction === "next") {
+    currentPage++;
+    startIndex = (currentPage - 1) * 10;
+    updateJobDescription(startIndex);
+  } else if (direction === "prev") {
+    currentPage--;
+    startIndex = (currentPage - 1) * 10;
+    updateJobDescription(startIndex);
+  }
 
-    // Fetch jobs via AJAX
-    fetch(`/jobs?page=${currentPage}`)
-        .then(response => response.json())
-        .then(jobs => {
-            // Update job listings
-            const jobListingsDiv = document.getElementById('job-listings');
-            jobListingsDiv.innerHTML = '';
+  // Fetch jobs via AJAX
+  fetch(`/fetch_jobs?page=${currentPage}`)
+    .then((response) => response.json())
+    .then((jobs) => {
+      // Update job listings
+      const jobListingsDiv = document.getElementById("job-listings");
+      jobListingsDiv.innerHTML = ``;
 
-            jobs.forEach(job => {
-                const jobHtml = `
-                    <div class="job-item p-4 mb-4">
+      jobs.slice(startIndex, startIndex + 10).forEach((job, index) => {
+        const jobHtml = `
+                    <div class="job-item p-4 mb-4" data-job-id="${startIndex + index}" onclick="updateJobDescription('${startIndex + index}')">
                         <div class="row g-4">
                             <div class="col-sm-12 col-md-8 d-flex align-items-center">
                                 <img class="flex-shrink-0 img-fluid border rounded"
@@ -149,32 +152,71 @@ function loadJobs(direction) {
                             </div>
                         </div>
                     </div>`;
-                jobListingsDiv.innerHTML += jobHtml;
-            });
+        jobListingsDiv.innerHTML += jobHtml;
+      });
 
-            // Update button states
-            document.getElementById('prev-btn').disabled = currentPage === 1;
-            document.getElementById('next-btn').disabled = currentPage === totalPages;
-        });
+      // Update button states
+      document.getElementById("prev-btn").disabled = currentPage === 1;
+      document.getElementById("next-btn").disabled = currentPage === totalPages;
+    });
 }
 
+document.getElementById("next-btn").addEventListener("click", function (event) {
+  event.preventDefault(); // Prevent default page reload
 
+  loadJobs("next");
 
-document.getElementById('next-btn').addEventListener('click', function(event) {
-    event.preventDefault();  // Prevent default page reload
-    
-    loadJobs('next')
-
-    // After loading the new jobs, scroll to the top of the container
-    document.getElementById('job-container').scrollIntoView({ behavior: 'smooth' });
+  // After loading the new jobs, scroll to the top of the container
+  document
+    .getElementById("job-container")
+    .scrollIntoView({ behavior: "smooth" });
 });
 
-document.getElementById('prev-btn').addEventListener('click', function(event) {
-    event.preventDefault();  // Prevent default page reload
-    
-    loadJobs('prev')
-    
-    // After loading the previous jobs, scroll to the top of the container
-    document.getElementById('job-container').scrollIntoView({ behavior: 'smooth' });
+document.getElementById("prev-btn").addEventListener("click", function (event) {
+  event.preventDefault(); // Prevent default page reload
+
+  loadJobs("prev");
+
+  // After loading the previous jobs, scroll to the top of the container
+  document
+    .getElementById("job-container")
+    .scrollIntoView({ behavior: "smooth" });
 });
 
+let jobDescriptions = null;
+
+fetch(`/fetch_jobs`)
+  .then((response) => response.json())
+  .then((All_jobs) => {
+    
+    jobDescriptions = All_jobs;
+    console.log(jobDescriptions);
+
+    // Add event listeners to each job item
+    // const jobItems = document.getElementsByClassName("job-item");
+    // for (let i = 0; i < jobItems.length; i++) {
+    //   jobItems[i].addEventListener("click", function (event) {
+    //     // Get the job ID from the clicked item
+    //     const jobId = parseInt(event.target.getAttribute("data-job-id"));
+
+    //     // Update the job description
+    //     updateJobDescription(jobId);
+    //   });
+    // }
+  });
+
+function updateJobDescription(jobId) {
+  console.log(jobId);
+  if (jobDescriptions) {
+    const jobDescription = jobDescriptions[jobId].description;
+    document.getElementById("job-desc-content").innerText = jobDescription;
+
+    // Scroll to the job description section if necessary
+    document
+      .getElementById("job-description")
+      .scrollIntoView({ behavior: "smooth" });
+  }
+}
+window.onload = function() {
+  updateJobDescription(0);  // Display the first job's description on page load
+}

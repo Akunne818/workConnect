@@ -43,8 +43,8 @@
     <link href="../static/styles/css/bootstrap.min.css" rel="stylesheet" />
 
     <!-- Template Stylesheet -->
-    <link href="../static/styles/style.css" rel="stylesheet" />
-    <link rel="stylesheet" href="../static/styles/login.css" />
+    <link href="../static/styles/style.css?cache_id={{ cache_id }}" rel="stylesheet" />
+    <link rel="stylesheet" href="../static/styles/login.css?cache_id={{ cache_id }}" />
   </head>
 
   <body>
@@ -570,7 +570,7 @@
                     <div id="job-listings">
                         <!-- Jobs will be inserted here dynamically -->
                         {% for job in All_jobs %}
-                        <div class="job-item p-4 mb-4">
+                        <div class="job-item p-4 mb-4" data-job-id="{{ loop.index0 }}" onclick="updateJobDescription('{{ loop.index0 }}')"  >
                             <div class="row g-4">
                                 <div class="col-sm-12 col-md-8 d-flex align-items-center">
                                     <img class="flex-shrink-0 img-fluid border rounded"
@@ -724,18 +724,11 @@
               </div>
             </div>
             <div class="col-lg-4">
-              <div id="job-description" class="p-4 mb-4">
-                <h5 style="margin-top: -20px;">Job Description</h5>
-                <p style="margin-top: 70px;">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
-                  facilisi. Donec at erat in neque tristique interdum. Sed sed
-                  est sed felis dignissim viverra. Sed vel dolor vel arcu
-                  lobortis lobortis.
-                </p>
-                <p>Aligqi kdughoi ugoib kughhj</p>
+              <div id="job-description" class=" mb-4">
+                <h5 style="margin-top: 11px;">Job Overview</h5>
+                <p id="job-desc-content">{{ All_jobs[0].description }}</p>
               </div>
-            </div>
-          </div>
+            </div>          </div>
         </div>
       </div>
       <div class="container-xxl py-5 d-lg-none">
@@ -1032,8 +1025,8 @@
     <script src="../static/styles/lib/owlcarousel/owl.carousel.min.js"></script>
 
     <!-- Template Javascript -->
-    <script src="../static/scripts/script.js"></script>
-    <!-- Add JavaScript for AJAX -->
+    <script src="../static/scripts/script.js?cache_id={{ cache_id }}"></script>
+  
     
   </body>
 </html>

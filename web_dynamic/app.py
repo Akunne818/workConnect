@@ -21,6 +21,9 @@ import smtplib
 import requests
 from bs4 import BeautifulSoup
 import re
+import html
+
+cache_id = str(uuid.uuid4())
 
 
 AUTH = Auth()
@@ -40,11 +43,32 @@ def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
 
 
+def robust_cleaning(text):
+    """Cleans HTML tags, entities, and non-human readable characters from text."""
+    # Step 1: Parse HTML tags with BeautifulSoup
+    soup = BeautifulSoup(text, "html.parser")
+    clean_text = soup.get_text(separator=' ')
+
+    # Step 2: Unescape HTML entities
+    clean_text = html.unescape(clean_text)
+
+    # Step 3: Replace non-human readable characters
+    clean_text = re.sub(r'â', "'", clean_text)
+    clean_text = re.sub(r'â', '-', clean_text)
+    clean_text = re.sub(r'Â', '', clean_text)
+
+    # Step 4: Remove extra whitespace
+    clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+
+    return clean_text
+
+
 # Number of jobs per page
 # Number of jobs per page
 JOBS_PER_PAGE = 10
 
 # Function to fetch and format jobs
+@app.route('/fetch_jobs', methods=['GET'])
 def fetch_jobs():
     url = "https://remoteok.io/api"
     response = requests.get(url)
@@ -57,7 +81,7 @@ def fetch_jobs():
     for job in sorted_jobs:
         if not job.get('position'):
             continue
-        description = re.sub(r'<[^>]*>', '', job.get('description', ''))
+        description = robust_cleaning(job.get('description', ''))
         All_jobs.append({
             'title': job.get('position'),
             'company': job.get('company'),
@@ -85,7 +109,7 @@ def index():
     total_jobs = len(fetch_jobs())
     total_pages = (total_jobs // JOBS_PER_PAGE) + (1 if total_jobs % JOBS_PER_PAGE else 0)
 
-    return render_template('index.html', All_jobs=All_jobs, total_pages=total_pages)
+    return render_template('index.html', All_jobs=All_jobs, total_pages=total_pages, cache_id=cache_id)
 
 # API endpoint to return jobs for a specific page
 @app.route('/jobs', methods=['GET'])

@@ -267,11 +267,21 @@
     border-radius: 2px;
     box-shadow: 0 0 45px rgba(0, 0, 0, .08);
     transition: .5s;
+    cursor: pointer;
 }
 
 .job-item:hover {
     border-color: rgba(0, 0, 0, .08);
     box-shadow: none;
+}
+
+#job-desc-content{
+    height: 1730px;
+    font-size: 15px;
+    overflow: scroll;
+    margin-top: 49px;
+    width: 402px;
+
 }
 
 /*** Testimonial ***/
