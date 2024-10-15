@@ -68,7 +68,7 @@ class Basemodels:
         from models.engine.auth import Auth
         self.updated_at = datetime.utcnow()
         auth = Auth()
-        auth.register_user(self.email, self.password, self.first_name, self.last_name)
+        auth.register_user(self.email, self.password, self.username)
 
     
 

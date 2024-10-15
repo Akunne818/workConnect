@@ -392,3 +392,71 @@
 .container-xxl {
     width: 100vw;
 }
+
+/**** popup ****/
+
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    width: 80%;
+    max-width: 500px;
+}
+
+.popup h2 {
+color: #333;
+margin-bottom: 20px;
+text-align: center;
+}
+
+.popup p {
+color: #555;
+margin-bottom: 20px;
+text-align: center;
+}
+
+.popup input[type="file"] {
+display: none;
+}
+
+.popup .upload-button {
+background-color: #007bff;
+color: #fff;
+padding: 12px 20px;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+transition: background-color 0.3s ease;
+}
+
+.popup .upload-button:hover {
+background-color: #0056b3;
+}
+
+.popup .upload-text {
+font-size: 14px;
+color: #fff;
+
+}
+.close-button {
+position: absolute;
+top: 10px;
+right: 10px;
+background-color: #f44336; /* Red color for close */
+color: white;
+padding: 8px 12px;
+border: none;
+border-radius: 50%; /* Make it a circle */
+cursor: pointer;
+transition: background-color 0.3s ease;
+}
+
+.close-button:hover {
+background-color: #d32f2f;
+}

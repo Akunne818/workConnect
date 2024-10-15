@@ -136,11 +136,11 @@ class DBStorage:
 
     
 
-    def add_user(self, email: str, hashed_password: str, first_name: str, last_name: str) -> User:
+    def add_user(self, email: str, hashed_password: str, username: str) -> User:
         """This is the add user method"""
 
         new_user = User(email=email, hashed_password=hashed_password,
-                        first_name=first_name, last_name=last_name)
+                        username=username)
         print(new_user.id)
         self._session.add(new_user)
         self._session.flush()  # flush the changes to the database

@@ -22,7 +22,8 @@ def get_remoteok_jobs():
         print("Source:", job.get('source'))
         print("Source URL:", job.get('source_url'))
         print("Apply URL:", job.get('url'))
-        print("Salary:", job.get('salary'))
+        print("Salary min:", job.get('salary_min'))
+        print("Salary max:", job.get('salary_max'))
         print("Description:", re.sub(r'<[^>]*>', '', job.get('description')))
         print("="*50) 
 

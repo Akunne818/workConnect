@@ -31,7 +31,7 @@ class Auth:
         """the init class"""
         self._db = DBStorage()
 
-    def register_user(self, email: str, password: str, first_name: str, last_name: str) -> User:
+    def register_user(self, email: str, password: str, username: str) -> User:
         """register a user"""
         try:
             existing_user = self._db.find_user_by(email=email)
@@ -43,7 +43,7 @@ class Auth:
         if isinstance(password, str):
             password = _hash_password(password)
 
-        return self._db.add_user(email=email, hashed_password=password, first_name=first_name, last_name=last_name)
+        return self._db.add_user(email=email, hashed_password=password, username=username)
 
     def valid_login(self, email: str, password: str) -> bool:
         """Validates login details."""

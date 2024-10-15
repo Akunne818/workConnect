@@ -94,6 +94,8 @@ def fetch_jobs():
             'company_logo': job.get('company_logo'),
             'company_url': job.get('company_url'),
             'source': job.get('source'),
+            "salary_min": job.get('salary_min'),
+            "salary_max": job.get('salary_max'),
             'source_url': job.get('source_url'),
             'apply_url': job.get('url'),
         })
@@ -101,13 +103,81 @@ def fetch_jobs():
     return All_jobs
 
 
+
+def get_jobs(keywords):
+    """Fetch job listings from RemoteOK API."""
+    jobs = []
+    for keyword in keywords:
+        url = f"https://remoteok.io/api?tag={keyword}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+        }
+
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            jobs.extend(response.json()[1:])  # Ignore metadata
+            sorted_jobs = sorted(jobs, key=lambda job: (job.get('position'), job.get('date')))
+
+            for job in sorted_jobs:
+                if not job.get('position'):
+                    continue
+
+                try:
+                    dt = datetime.fromisoformat(job.get('date'))
+                    date = dt.strftime('%B %d, %Y')  # Convert to readable format
+                except ValueError:
+                    date = 'N/A'  # Handle invalid dates
+
+                description = robust_cleaning(job.get('description', ''))
+                jobs.append({
+                    'title': job.get('position'),
+                    'company': job.get('company'),
+                    'date': date,
+                    'description': description,
+                    'categories': job.get('categories'),
+                    'tags': job.get('tags'),
+                    'type': job.get('type'),
+                    'location': job.get('location'),
+                    'company_logo': job.get('company_logo'),
+                    'company_url': job.get('company_url'),
+                    'source': job.get('source'),
+                    'salary_min': job.get('salary_min'),
+                    'salary_max': job.get('salary_max'),
+                    'source_url': job.get('source_url'),
+                    'apply_url': job.get('url'),
+                })
+    return jobs
+
+@app.route('/fetch_search_jobs', methods=['GET'])
+def fetch_search_jobs():
+    """Fetch jobs based on query parameters."""
+    keywords = request.args.get('keywords', '').split(',')
+    jobs = get_jobs(keywords)
+    for job in jobs:
+        print(job['date'])
+    return jsonify(jobs)
+
+
+
+
+
 # Main route to render the template
-@app.route('/', methods=['GET'])
-def index():
+@app.route('/', methods=['GET'], strict_slashes=False)
+@app.route('/<session_id>', methods=['GET'], strict_slashes=False)
+@app.route('/<session_id>/<is_new_user>', methods=['GET'], strict_slashes=False)
+def index(session_id=None, is_new_user=None):
     # Load the first page initially
     All_jobs = fetch_jobs()[:JOBS_PER_PAGE]
     total_jobs = len(fetch_jobs())
     total_pages = (total_jobs // JOBS_PER_PAGE) + (1 if total_jobs % JOBS_PER_PAGE else 0)
+
+    if session_id is not None:
+        user = AUTH.get_user_from_session_id(session_id)
+        
+        # Convert the string 'true' or 'false' to a boolean
+        is_new_user = is_new_user.lower() == 'true'  
+
+        return render_template('index.html', user=user, All_jobs=All_jobs, total_pages=total_pages, cache_id=cache_id, is_new_user=is_new_user)
 
     return render_template('index.html', All_jobs=All_jobs, total_pages=total_pages, cache_id=cache_id)
 
@@ -159,6 +229,25 @@ def profile():
             return jsonify({"email": user.email}), 200
     abort(403)
 
+
+@app.route('/reg_users', methods=['POST'], strict_slashes=False)
+def reg_users():
+    """reg user"""
+    try:
+        data = request.json
+        email = data.get('email')
+        password = data.get('password')
+        user_name = data.get('username')
+
+        if not email or not password:
+            return jsonify({"message": "Missing email or password"}), 400
+
+        AUTH.register_user(email, password, user_name)
+        return jsonify({"email": email, "message": "user created"})
+
+    except ValueError:
+        return jsonify({"message": "email already registered"}), 460
+
 @app.route('/sessions', methods=['POST'], strict_slashes=False)
 def login():
     """login route"""
@@ -176,6 +265,7 @@ def login():
             response = make_response(
                 jsonify({"email": email, "user_id": user.id}))
             response.set_cookie("session_id", session_id)
+            print('cookies set to session:',  request.cookies.get('session_id'))
 
             return jsonify({"session_id": session_id})
 
